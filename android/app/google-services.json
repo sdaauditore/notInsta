@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "427601663804",
+    "project_id": "notinsta-24f17",
+    "storage_bucket": "notinsta-24f17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427601663804:android:a954752a5a616ecf147039",
+        "android_client_info": {
+          "package_name": "com.notmeta.not_insta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0Q2XEjQiYqjHx6j0e0Kgk_o0wiHZMMro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
