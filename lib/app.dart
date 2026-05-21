@@ -6,7 +6,7 @@ import 'package:not_insta/features/auth/presentation/cubits/auth_states.dart';
 import 'package:not_insta/themes/light_mode.dart';
 
 import 'features/auth/presentation/pages/auth_page.dart';
-import 'features/post/presentation/pages/home_page.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 class MyApp extends StatelessWidget {
   //auth repo
