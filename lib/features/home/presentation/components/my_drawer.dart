@@ -40,12 +40,21 @@ class MyDrawer extends StatelessWidget {
               MyDrawerTile(
                 title: "P R O F I L E",
                 icon: Icons.person_3,
-                onTap: () => {
-                  Navigator.of(context).pop(),
+                onTap: () {
+                  Navigator.of(context).pop();
+
+                  //get current user
+                  final user = context.read<AuthCubit>().currentUser;
+                  String? uid = user!.uid;
+
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ProfilePage()),
-                  ),
+                    MaterialPageRoute(
+                      builder: (context) => ProfilePage(
+                        uid: uid,
+                      ),
+                    ),
+                  );
                 },
               ),
 
