@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/not_insta.iml" filepath="$PROJECT_DIR$/not_insta.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/not_insta_android.iml" filepath="$PROJECT_DIR$/android/not_insta_android.iml" />
     </modules>
   </component>
 </project>
