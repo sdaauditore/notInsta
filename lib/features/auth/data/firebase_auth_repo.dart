@@ -51,7 +51,6 @@ class FirebaseAuthRepo implements AuthRepo {
           .doc(user.uid)
           .set(user.toJson());
 
-
       return user;
     } catch (e) {
       throw Exception('Login Failed $e');

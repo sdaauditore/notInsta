@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -11,13 +13,11 @@ import 'package:not_insta/features/profile/presentation/cubits/profile_states.da
 class EditProfilePage extends StatefulWidget {
   final ProfileUser user;
 
-  const EditProfilePage({
-    super.key,
-    required this.user,
-  });
+  const EditProfilePage({super.key, required this.user});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
+
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -29,11 +29,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   //pick image
   Future<void> pickImage() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.image,
-      withData: kIsWeb
+      withData: kIsWeb,
     );
-
+    if (result != null) {
+      setState(() {
+        imagePickedFile = result.files.first;
+        if (kIsWeb) {
+          webImage = imagePickedFile!.bytes;
+        }
+      });
+    }
   }
 
   //bio Text controller
@@ -42,11 +49,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
   //update profile button pressed
   void updateProfile() async {
     final profileCubit = context.read<ProfileCubit>();
-    if (bioTextController.text.isNotEmpty) {
+
+    //prepare images and data
+    final String uid = widget.user.uid;
+    final imageMobilePath = kIsWeb ? null : imagePickedFile?.path;
+    final imageWebBytes = kIsWeb ? imagePickedFile?.bytes : null;
+    final String? newBio = bioTextController.text.isNotEmpty
+        ? bioTextController.text
+        : null;
+
+    //only update profile if something to update
+    if (imagePickedFile != null || newBio != null) {
       profileCubit.updateProfile(
-        uid: widget.user.uid,
-        newBio: bioTextController.text,
+        uid: uid,
+        newBio: newBio,
+        imageMobilePath: imageMobilePath,
+        imageWebBytes: imageWebBytes,
       );
+    } else {
+      Navigator.pop(context);
     }
   }
 
@@ -60,10 +81,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  Text("Uploading..."),
-                ],
+                children: [CircularProgressIndicator(), Text("Uploading...")],
               ),
             ),
           );
@@ -79,7 +97,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget buildEditPage({double uploadProgress = 0.0}) {
+  Widget buildEditPage() {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -87,21 +105,69 @@ class _EditProfilePageState extends State<EditProfilePage> {
         foregroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           //save button
-          IconButton(
-            onPressed: updateProfile,
-            icon: const Icon(Icons.upload),
-          ),
+          IconButton(onPressed: updateProfile, icon: const Icon(Icons.upload)),
         ],
       ),
       body: Column(
         children: [
           //profile picture
+          Center(
+            child: Container(
+              height: 200,
+              width: 200,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary,
+                shape: BoxShape.circle,
+              ),
+              clipBehavior: Clip.hardEdge,
+              child:
+                  //display selected image for mobile
+                  (!kIsWeb && imagePickedFile != null)
+                  ? Image.file(
+                      File(imagePickedFile!.path!),
+                      fit: BoxFit.cover,
+                    )
+                  :
+                    //display selected image for web
+                    (kIsWeb && webImage != null)
+                  ? Image.memory(webImage!)
+                  :
+                    //display existing image
+                    CachedNetworkImage(
+                      imageUrl: widget.user.profileImageUrl,
+                      //loading
+                      placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                      //error-> fail to load
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.person,
+                        size: 72,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+
+                      //loaded
+                      imageBuilder: (context, imageProvider) => Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 25),
+
+          //pick image button
+          Center(
+            child: MaterialButton(
+              onPressed: pickImage,
+              color: Colors.blueAccent,
+              child: const Text("Upload Image"),
+            ),
+          ),
 
           //bio
           const Text("Bio"),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
