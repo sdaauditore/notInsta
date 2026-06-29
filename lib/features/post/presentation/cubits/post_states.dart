@@ -11,6 +11,9 @@ class PostsLoading extends PostState{}
 // uploading
 class PostUploading extends PostState{}
 
+//post created by me
+class PostCreated extends PostState {}
+
 // error
 class PostsError extends PostState{
   final String message;

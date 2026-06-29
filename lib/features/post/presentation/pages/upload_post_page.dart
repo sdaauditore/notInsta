@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:not_insta/features/auth/domain/entities/app_user.dart';
@@ -76,6 +77,8 @@ class _UploadPostPageState extends State<UploadPostPage> {
       timeStamp: DateTime.now(),
       userId: currentUser!.uid,
       userName: currentUser!.name,
+      likes: [],
+      comments: [],
     );
 
     // post cubit
@@ -98,13 +101,32 @@ class _UploadPostPageState extends State<UploadPostPage> {
     super.dispose();
   }
 
-  // UI
+  // UI by me
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PostCubit, PostState>(
+      // 1. Listen for the dedicated event state or errors
+      listener: (context, state) {
+        if (state is PostCreated) {
+          // Success! Go back to the previous screen (Feed)
+          Navigator.pop(context);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Post uploaded successfully!")),
+          );
+        }
+
+        if (state is PostsError) {
+          // Show error feedback if something went wrong
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+
+      // 2. Build the UI based on state
       builder: (context, state) {
-        print("PRINTING: $state");
-        // loading or uploading
+        // Show loading spinner during upload or fetching process
         if (state is PostsLoading || state is PostUploading) {
           return const Scaffold(
             body: Center(
@@ -112,18 +134,39 @@ class _UploadPostPageState extends State<UploadPostPage> {
             ),
           );
         }
-        // build upload page
-        return buildUploadPage();
-      },
 
-      // go to previous page when upload is done
-      listener: (context, state) {
-        if (state is PostsLoaded) {
-          Navigator.pop(context);
-        }
+        // Return normal upload form layout
+        return buildUploadPage();
       },
     );
   }
+
+  // UI
+  // @override
+  // Widget build(BuildContext context) {
+  //   return BlocConsumer<PostCubit, PostState>(
+  //     builder: (context, state) {
+  //
+  //       // loading or uploading
+  //       if (state is PostsLoading || state is PostUploading) {
+  //         return const Scaffold(
+  //           body: Center(
+  //             child: CircularProgressIndicator(),
+  //           ),
+  //         );
+  //       }
+  //       // build upload page
+  //       return buildUploadPage();
+  //     },
+  //
+  //     // go to previous page when upload is done
+  //     listener: (context, state) {
+  //       if (state is PostsLoaded) {
+  //         Navigator.pop(context);
+  //       }
+  //     },
+  //   );
+  // }
 
   Widget buildUploadPage() {
     return Scaffold(
@@ -146,7 +189,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
             //image preview for web
             if (kIsWeb && webImage != null) Image.memory(webImage!),
 
-            //image preview for mobilee
+            //image preview for mobile
             if (!kIsWeb && imagePickedFile != null)
               Image.file(File(imagePickedFile!.path!)),
 
