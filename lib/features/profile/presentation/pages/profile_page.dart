@@ -8,8 +8,10 @@ import 'package:not_insta/features/post/presentation/cubits/post_cubit.dart';
 import 'package:not_insta/features/post/presentation/cubits/post_states.dart';
 import 'package:not_insta/features/profile/presentation/components/bio_box.dart';
 import 'package:not_insta/features/profile/presentation/components/follow_button.dart';
+import 'package:not_insta/features/profile/presentation/components/profile_stats.dart';
 import 'package:not_insta/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:not_insta/features/profile/presentation/cubits/profile_states.dart';
+import 'package:not_insta/features/profile/presentation/pages/follower_page.dart';
 
 import 'edit_profile_page.dart';
 
@@ -51,7 +53,32 @@ class _ProfilePageState extends State<ProfilePage> {
     final profileUser = profileState.profileUser;
     final isFollowing = profileUser.followers.contains(currentUser!.uid);
 
-    profileCubit.toggleFollow(currentUser!.uid, widget.uid);
+    // optimize ui
+    setState(() {
+      // unfollow
+      if (isFollowing) {
+        profileUser.followers.remove(currentUser!.uid);
+      }
+      // unfollow
+      else {
+        profileUser.followers.add(currentUser!.uid);
+      }
+    });
+
+    // perform actual toggle in cubit
+    profileCubit.toggleFollow(currentUser!.uid, widget.uid).catchError((error) {
+      // revert update if any error
+      setState(() {
+        // unfollow
+        if (isFollowing) {
+          profileUser.followers.add(currentUser!.uid);
+        }
+        // unfollow
+        else {
+          profileUser.followers.remove(currentUser!.uid);
+        }
+      });
+    });
   }
 
   @override
@@ -133,6 +160,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 25,
                 ),
 
+                // profile stats
+                ProfileStats(
+                  postCount: postCount,
+                  followerCount: user.followers.length,
+                  followingCount: user.following.length,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FollowerPage(
+                        following: user.following,
+                        followers: user.followers,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 10,
+                ),
                 // follow button
                 if (!isOwnPost)
                   FollowButton(
